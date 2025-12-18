@@ -2,17 +2,22 @@ class Natural:
     def __init__(self, n, A):
         self.A = A  # [] массив из int   123 -> [1, 2, 3]
         self.len = n  # int len(A)-1
-        # Автоматически убираем ведущие нули при создании
-        while len(self.A) > 1 and self.A[0] == 0:
-            self.A.pop(0)
-        # Корректируем длину после удаления нулей
+
+        # Убираем ведущие нули
+        start = 0
+        while start < len(A) - 1 and A[start] == 0:
+            start += 1
+        self.A = A[start:]
+
         self.len = len(self.A) - 1
 
-        # Если после удаления нулей массив пуст, создаем [0]
 
+        # Если после удаления нулей массив пуст, создаем [0]
         if len(self.A) == 0:
             self.A = [0]
             self.len = 0
+
+    __slots__ = ('A', 'n', 'len')     # memory optimization
 
     def COM_NN_D(self, other):
         """
@@ -403,3 +408,9 @@ class Natural:
     def show(self):
         s="".join(list(map(str, self.A)))
         return s
+
+    def __str__(self):
+        return "".join([str(num) for num in self.A])
+
+    def __eq__(self, other):
+        return self.A == other.A

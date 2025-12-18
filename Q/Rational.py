@@ -13,9 +13,16 @@ def TRANS_N_Z(N):
 
 
 class Rational:
-    def __init__(self, numerator, denominator):
-        self.numerator = numerator  # Integer числитель
+    def __init__(self, numerator: Integer, denominator: Natural):
+        # new: нормализация нуля. 0 = 0/1 только
+        if numerator.A == [0]:
+            denominator.A = [1]
+            denominator.len = 0
+
+        self.numerator = numerator      # Integer числитель
         self.denominator = denominator  # Natural знаменатель
+
+    __slots__ = ('numerator', 'denominator')
 
     def RED_Q_Q(self):
         """
@@ -172,3 +179,53 @@ class Rational:
         s = s+temp
         s = s + ')'
         return s
+
+
+    # Добавлено после коллоквиума, мне для матриц
+    def __str__(self):
+        return str(self.numerator) + "/" + str(self.denominator)
+
+
+    def __eq__(self, other):
+        return (self.numerator == other.numerator and
+                self.denominator == other.denominator)
+
+
+    def __pow__(self, other):
+        """
+        Бинарное возведение дроби в целую степень (int)
+        """
+        if not isinstance(other, int):
+            raise TypeError(f"Вовзедение дроби только в целую степень, получен {type(other)}")
+
+        one_rat = Rational(Integer(0, 1, [1]), Natural(1, [1]))
+
+        if other == 1:
+            return self
+
+        if other == 0:
+            return one_rat
+
+        if other < 0:
+            base =  one_rat / self
+            other = -other
+
+        else:
+            base = self
+
+
+        power = other
+        res = one_rat
+
+        while power > 0:
+            if power & 1:                # Если степень нечётная
+                res = res * base
+            base = base * base           # Возводим в квадрат
+            power >>= 1                  # Делим степень на 2
+
+        return res
+
+
+    def __neg__(self):
+        num = self.numerator.MUL_ZM_Z()
+        return Rational(num, self.denominator)

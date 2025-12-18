@@ -6,6 +6,8 @@ class Integer:
         self.len = n  # int len(A)-1
         self.A = A  # [] массив из int   123 -> [1, 2, 3], -123 -> [1, 2, 3]
 
+    __slots__ = ('s', 'len', 'A')
+
     def ABS_Z_Z(self):
         """
         Сделала: Имховик Наталья
@@ -211,3 +213,10 @@ class Integer:
             s="-"
         s=s+"".join(list(map(str, self.A)))
         return s
+
+    def __str__(self):
+        s = "" if not self.s else "-"
+        return s + "".join([str(num) for num in self.A])
+
+    def __eq__(self, other):
+        return self.A == other.A and self.s == other.s
