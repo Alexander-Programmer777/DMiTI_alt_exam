@@ -1,6 +1,8 @@
 """
-Для запуска замеров производительности работы над матрицами из корневой дирректории через терминал.
-Здесь явно прописаны пути к файлам.
+Исследование алгоритмов, имеющих несколько способов реализации
+с целью выбора наиболее эффективного по времени
+
+Для запуска замеров производительности работы над матрицами из корневой дирректории через pypy3 в терминале.
 """
 
 
@@ -18,11 +20,6 @@ import os
 os.makedirs("graphs", exist_ok=True)
 
 from Matrixes.implementation_choice import *
-
-"""
-Исследование алгоритмов, имеющих несколько способов реализации
-с целью выбора наиболее эффективного по времени
-"""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -358,7 +355,6 @@ def research_pow():
     print("\n=== Исследование возведения в степень ===")
 
     # 1) Сравнение naive_pow и quick_powering для разных размеров
-    # quick_powering -> (Самый оптимальный по результатам)
 
     sizes_pow = [2, 4, 6]
     powers = [10, 50, 75]
@@ -425,7 +421,70 @@ def research_pow():
         plt.show()
 
 
-    # 2) Сравнение методов для матриц 2x2
+    # NEW
+    # 2 Исследование возведения в степень для мтариц небольшоего размера по методу характеристического полинома (теорема Гамильтона-Кэли)
+    # Здесь 9 графиков для разных рассматриваемых размеров в зависимости от степеней. Сравнение с quick-powering
+
+    sizes = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+    powers_small = [5, 10, 25, 50, 75, 100, 200]
+    powers_medium = [5, 10, 25, 50, 75, 100]
+    powers_large = [5, 10, 25, 50, 75]
+
+    for size in sizes:
+
+        time_HC_list = []
+        time_quick_list = []
+
+        if size <= 4:
+            powers = powers_small
+        elif size <= 6:
+            powers = powers_medium
+        else:
+            powers = powers_large
+
+        for power in powers:
+            time_H_C = 0
+            time_quick = 0
+            count = 0
+
+            for _ in range(min(repeats_pow, 2)):  # Меньше повторов для возведения в степень
+                A = create_test_matrix(size)
+
+                # Hamilton-Cayley
+                st = time.perf_counter()
+                A.Hamilton_Cayley_pow(power)
+                end = time.perf_counter()
+                time_H_C += end - st
+
+                # quick_powering
+                st = time.perf_counter()
+                A.quick_powering(power)
+                end = time.perf_counter()
+                time_quick += end - st
+                count += 1
+
+            time_HC_list.append(time_H_C / count)
+            time_quick_list.append(time_quick / count)
+
+        # График для этой степени
+        plt.figure(figsize=(10, 6))
+
+        plt.plot(powers, time_HC_list, 'ro-', label="Hamilton-Cayley", markersize=6)
+        plt.plot(powers, time_quick_list, 'go-', label="Quick powering", markersize=6)
+
+        plt.xlabel("Степень")
+        plt.ylabel("Время выполнения (сек)")
+        plt.title(f"Quick_pow vs Hamilton-Cayley for size {size}")
+        plt.grid(True, alpha=0.3)
+        plt.legend()
+        plt.savefig(f"graphs/pow_HC_size{size}.png", dpi=300, bbox_inches='tight')
+        plt.show()
+
+
+    # 3) Сравнение методов для матриц 2x2
+    # 2 случая с = 0, с != 0. Сравнение метода диагонализации, аналитического, быстрое
+
     print("\n--- Методы для матриц 2x2 ---")
 
     powers_2x2 = [10, 50, 100, 200, 500, 1000]
@@ -585,8 +644,7 @@ def research_pow():
     plt.show()
 
 
-
-    # 3) Возведение уже диагональных матриц в степень
+    # 4) Возведение уже диагональных матриц в степень
     print("\n--- Диагональные матрицы ---")
 
     sizes_diag = [2, 4, 8, 16, 32, 64, 100]
@@ -795,14 +853,12 @@ def create_diagonizable_2x2_common():
          Rational(Integer(1, 1, [2]), Natural(1, [9]))]
     ])
 
-
     A4 = Matrix(2, [
         [Rational(Integer(1, 1, [2]), Natural(1, [3])),
          Rational(Integer(1, 1, [1]), Natural(1, [1]))],
         [Rational(Integer(1, 1, [5]), Natural(1, [2])),
          Rational(Integer(0, 1, [3]), Natural(1, [2]))]
     ])
-
 
     A5 = Matrix(2, [
         [Rational(Integer(1, 1, [5]), Natural(1, [1])),
@@ -811,14 +867,12 @@ def create_diagonizable_2x2_common():
          Rational(Integer(1, 1, [1]), Natural(1, [8]))]
     ])
 
-
     A6 = Matrix(2, [
         [Rational(Integer(0, 1, [5]), Natural(1, [4])),
          Rational(Integer(0, 1, [0]), Natural(1, [1]))],
         [Rational(Integer(0, 1, [5]), Natural(1, [6])),
          Rational(Integer(0, 1, [5]), Natural(1, [2]))]
     ])
-
 
     A7 = Matrix(2, [
         [Rational(Integer(1, 1, [9]), Natural(1, [5])),
@@ -858,14 +912,12 @@ def create_diagonizable_2x2_special():
          Rational(Integer(1, 1, [3]), Natural(1, [2]))]
     ])
 
-
     A4 = Matrix(2, [
         [Rational(Integer(1, 1, [9]), Natural(1, [1])),
          Rational(Integer(0, 1, [1]), Natural(1, [1]))],
         [Rational(Integer(0, 1, [0]), Natural(1, [1])),
          Rational(Integer(0, 1, [1]), Natural(1, [2]))]
     ])
-
 
     A5 = Matrix(2, [
         [Rational(Integer(0, 1, [4]), Natural(1, [5])),
@@ -874,14 +926,12 @@ def create_diagonizable_2x2_special():
          Rational(Integer(1, 1, [3]), Natural(1, [7]))]
     ])
 
-
     A6 = Matrix(2, [
         [Rational(Integer(0, 1, [9]), Natural(1, [8])),
          Rational(Integer(0, 1, [3]), Natural(1, [4]))],
         [Rational(Integer(0, 1, [0]), Natural(1, [1])),
          Rational(Integer(0, 1, [1]), Natural(1, [1]))]
     ])
-
 
     A7 = Matrix(2, [
         [Rational(Integer(0, 1, [1]), Natural(1, [1])),
@@ -908,6 +958,90 @@ def create_polynomial_coeffs(degree, matrix_size, zero_probability=0.5):
     return coeffs
 
 
+# NEW
+def analyze_huge_sizes_quick_vs_HC():
+    """
+    Замеры времени для сравнения метода быстрого возведения в степень и метода Гамильтона-Кэли
+    для матриц размера > 10, для проверки преположения про граничное значение power >= 2.5 * size
+
+    Результат: начиная с 20, бинарное возведение быстрее
+    """
+    # sizes = [15, 20, 25]
+    # powers = [40, 50, 63]   # ~size ** 2.5
+    #
+    # for i in range(3):
+    #     A = create_test_matrix(sizes[i])
+    #     with timer("Quick"):
+    #         A.quick_powering(powers[i])
+    #
+    #     with timer("Hamilton-Cayley"):
+    #         A.Hamilton_Cayley_pow(powers[i])
+
+
+    # Проверка для размеров от 11 до 14
+    sizes = [11, 12, 13, 14]
+    powers = [28, 30, 33, 35]  # ~size ** 2.5
+
+    for i in range(4):
+        A = create_test_matrix(sizes[i])
+        with timer("Quick"):
+            A.quick_powering(powers[i])
+
+        with timer("Hamilton-Cayley"):
+            A.Hamilton_Cayley_pow(powers[i])
+
+
+def analyze_2x2_quick_vs_HC():
+    """
+    Так как на графике для матриц 2х2 для рассмотренных степеней <= 200 qick_powering все еще оказался быстрее,
+    необходимо отдельно найти пороговое значение степени, при котором второй метод становится оптимальнее
+    """
+
+    powers = [250, 500, 750, 1000, 2000]
+    size = 2
+
+    time_HC_list = []
+    time_quick_list = []
+
+    for power in powers:
+        time_H_C = 0
+        time_quick = 0
+        count = 0
+
+        for _ in range(1):
+            A = create_test_matrix(size)
+
+            # Hamilton-Cayley
+            st = time.perf_counter()
+            A.Hamilton_Cayley_pow(power)
+            end = time.perf_counter()
+            time_H_C += end - st
+
+            # quick_powering
+            st = time.perf_counter()
+            A.quick_powering(power)
+            end = time.perf_counter()
+            time_quick += end - st
+            count += 1
+
+        time_HC_list.append(time_H_C / count)
+        time_quick_list.append(time_quick / count)
+
+    # График для этой степени
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(powers, time_HC_list, 'ro-', label="Hamilton-Cayley", markersize=6)
+    plt.plot(powers, time_quick_list, 'go-', label="Quick powering", markersize=6)
+
+    plt.xlabel("Степень")
+    plt.ylabel("Время выполнения (сек)")
+    plt.title(f"Quick_pow vs Hamilton-Cayley for 2x2 and large powers")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.savefig(f"graphs/pow_HC_2x2_huge_powers.png", dpi=300, bbox_inches='tight')
+    plt.show()
+
+
 if __name__ == "__main__":
     # research_matmul()      # --done
     # research_det()         # --done
@@ -915,4 +1049,6 @@ if __name__ == "__main__":
     # research_pow()         # -- done
     # research_poly()        # -- done
 
+    # analyze_2x2_quick_vs_HC()
+    # analyze_huge_sizes_quick_vs_HC()
     ...

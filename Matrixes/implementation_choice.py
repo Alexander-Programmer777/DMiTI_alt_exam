@@ -6,6 +6,7 @@
 
 
 from N.Natural import Natural
+from P.Polynomial import Polynomial
 from Q.Rational import Rational
 from Z.Integer import Integer
 
@@ -138,7 +139,7 @@ class Matrix:
 
         Пометки про производительность (подробнее в research.py / benchmarking.py):
         * смог посчитать умножение матриц 40x40, но долго
-        * посчитал для 100х100 но минут 5-7 где-то, а метод Штрассена не смог посчитать за 15 минут...
+        * посчитал для матрицы 100х100 но минут 5-7 примерно, а метод Штрассена не смог посчитать за 15 минут...
         * относительно быстро для n <= 10, метод Штрассена ощутимо дольше считает
         => Используем
         """
@@ -171,7 +172,7 @@ class Matrix:
 
         * В теории должен давать виыгрыш на больших матрицах
         благодаря локальности памяти и лучшей кэш-эффективности,
-        так как обращений к памяти меньше, тк блоками достается
+        так как обращений к памяти меньше, тк достается блоками
         * На практике работает либо так же, как наивное умножение, либо хуже,
         так как затраты на создание range, работу min,
         что не перекрывет возвможный выигрыш по работе с памятью
@@ -371,7 +372,7 @@ class Matrix:
             return a * d - b * c
 
         if n == 3:
-            # треугольники
+            # треугольники (правило Сарруса)
             a, b, c = self.arr[0]
             d, e, f = self.arr[1]
             g, h, i = self.arr[2]
@@ -739,7 +740,7 @@ class Matrix:
         Сложность: O(n^5) - вычисление n^2 определителей размера (n-1): n^2 * (n-1)^3 ~ n^5 (так как считаем определитель за куб по методу Гаусса)
         Если не по методу Гаусса, то n^2 * (n - 1)! = n^2 * n! / n = n * n! (еще хуже)
 
-        Считает за адекватную скорость только для n <= 7
+        Считает за приемлемое время только для n <= 7
         => Не используем
         """
         n = self.size
@@ -1005,7 +1006,7 @@ class Matrix:
         sqrt_D = self._get_sqrt(D)
 
         if not sqrt_D:
-            print("Иррациональность в корне из дискриминанта")
+            print("Иррациональность в корне из дискриминанта")    # info output
             return None
 
         # Ищем собственные значния - корни характеристического уравнения
@@ -1081,7 +1082,7 @@ class Matrix:
         q = a/b => sqrt(q) = sqrt(a/b) = (sqrt(a)) / (sqrt(b))
         """
 
-        # Мини оптимизация: квадрат целого числа не заканчивается на 2, 3, 7, 8
+        # Небольшая оптимизация: квадрат целого числа не заканчивается на 2, 3, 7, 8
         for forbidden_num in [2, 3, 7, 8]:
             if q.numerator.A[-1] == forbidden_num or q.denominator.A[-1] == forbidden_num:
                 return None
@@ -1114,7 +1115,7 @@ class Matrix:
 
     def diagonalize_2x2(self):
         """
-        Диагонализация матрицы 2x2 над Q если возможно
+        Диагонализация матрицы 2x2 над Q, если возможно
 
         Возвращает: (P, D) такие что A = P * D * P^(-1)
         или None если нельзя диагонализовать над Q
@@ -1160,23 +1161,23 @@ class Matrix:
         A ~ D => A = P * D * P^-1 =>
         A^k = (P * D * P^-1)^k = P * D^k * P^-1
 
-        Свойство (почему резонно так диагонализировать):
-        A * P = D * P, где P - матрица в стобцах которой айгенвектора, D - диагональная матрица из айгензначений
-        A * [v1, v2] = diag(lmbd1, lmbd2) * [v1, v2] и если это раскрыть, то получится как раз определение айген векторов и чисел:
+        Свойство (почему можно так диагонализировать):
+        A * P = P * D, где P - матрица в стобцах которой айгенвектора, D - диагональная матрица из айгензначений
+        A * [v1, v2] = [v1, v2] * diag(lmbd1, lmbd2) и если это раскрыть, то получится как раз определение айген векторов и чисел:
         A * v_i = lmbd_i * v_i
 
         При провале диагонализации fallback на бинарное возведение в степень
 
-        На практике порой реально попадаются случаи без иррациональности и оно действительно считает быстрее
+        На практике порой реально попадаются случаи без иррациональности, и оно действительно считает быстрее
         К примеру, 9.33 сек vs 25.56 сек (quick_pow) для возведения матрицы 2х2 в 500 степень
         Главный минус в том, что несложно посчитать можно только для 2х2 матриц, так как аналитический поиск собственных значений и векторов
         очень усложняется с увеличением размера матрицы.
-        Так же ограничением является рассмотрение только рациональных значений, которые в 2x2 хоть как-то можно посчитать аналитически
+        Так же ограничением является рассмотрение только рациональных собственных значений, которые для 2x2 можно быстро посчитать аналитически
         """
 
         result = self.diagonalize_2x2()
         if result is None:
-            print("Диагонализация не удалась. Вычисление через quick_powering")
+            print("Диагонализация не удалась. Вычисление через quick_powering")   # info output
             return self.quick_powering(power)
 
         P, D = result
@@ -1254,7 +1255,7 @@ class Matrix:
         sqrt_D = self._get_sqrt(D)
         if sqrt_D is None:
             # Дискриминант не является полным квадратом рационального числа
-            print("fallback from analytical to quick")
+            print("Аналитические вычисления не удались. Вычисление через quick_powering")
             return self.quick_powering(power)
 
         # Собственные значения
@@ -1319,6 +1320,254 @@ class Matrix:
         return result
 
 
+    # NEW APPROACH: Hamilton-Cayley Theorem
+
+    def _get_characteristic_polynomial(self):
+        """
+        Вычисление характеристического полинома для матриц размера 2, 3, 4 по заранее выведенным формулам
+        Для больших размеров вычисление коэффициентов характеристического полинома через метод Фаддеева-Леверье
+
+        Если расписывать определители det(A - lmbd*E), можно заметить закономерность:
+        Коэффициент при lmbd^(n-k) в характеристическом полиноме равен (-1)^k * (сумма всех главных миноров размера k)
+        """
+        n = self.size
+
+        if n == 2:
+            a, b, c, d = self.arr[0][0], self.arr[0][1], self.arr[1][0], self.arr[1][1]
+            # Вычисляем след и определитель
+            tr = a + d
+            det = a * d - b * c
+
+            # p(x) = x^2 - tr*x + det
+            return Polynomial(2, [ONE_RATIONAL, -tr, det])
+
+        elif n == 3:
+            a, b, c = self.arr[0][0], self.arr[0][1], self.arr[0][2]
+            d, e, f = self.arr[1][0], self.arr[1][1], self.arr[1][2]
+            g, h, i = self.arr[2][0], self.arr[2][1], self.arr[2][2]
+
+            # След
+            tr = a + e + i
+
+            # Сумма главных миноров 2x2
+            m1 = a * e - b * d  # минор для элемента (3,3)
+            m2 = a * i - c * g  # минор для элемента (2,2)
+            m3 = e * i - f * h  # минор для элемента (1,1)
+            sum_minors = m1 + m2 + m3
+
+            # Определитель
+            det = self.det3x3(a, b, c, d, e, f, g, h, i)
+
+            # p(x) = x^3 - tr*x^2 + sum_minors*x - det
+            return Polynomial(3, [ONE_RATIONAL, -tr, sum_minors, -det])
+
+        elif n == 4:
+            a, b, c, d = self.arr[0][0], self.arr[0][1], self.arr[0][2], self.arr[0][3]
+            e, f, g, h = self.arr[1][0], self.arr[1][1], self.arr[1][2], self.arr[1][3]
+            i, j, k, l = self.arr[2][0], self.arr[2][1], self.arr[2][2], self.arr[2][3]
+            m, n, o, p = self.arr[3][0], self.arr[3][1], self.arr[3][2], self.arr[3][3]
+
+            # След
+            tr = a + f + k + p
+
+            # Сумма главных миноров 3x3
+            m1 = self.det3x3(f, g, h,  # минор для элемента (1,1)
+                        j, k, l,
+                        n, o, p)
+
+            m2 = self.det3x3(a, c, d,  # минор для элемента (2,2)
+                        i, k, l,
+                        m, o, p)
+
+            m3 = self.det3x3(a, b, d,  # минор для элемента (3,3)
+                        e, f, h,
+                        m, n, p)
+
+            m4 = self.det3x3(a, b, c,  # минор для элемента (4,4)
+                        e, f, g,
+                        i, j, k)
+
+            sum_minors_3x3 = m1 + m2 + m3 + m4
+
+            # Сумма всех C(4, 2) = 6 главных миноров 2x2
+            s1 = self.det2x2(a, b, e, f) + self.det2x2(a, c, i, k) + self.det2x2(a, d, m, p)
+            s2 = self.det2x2(f, g, j, k) + self.det2x2(f, h, n, p) + self.det2x2(k, l, o, p)
+            sum_minors_2x2 = s1 + s2
+
+            det = self.det_Gauss()
+
+            # p(x) = x^4 - tr*x^3 + sum_minors_2x2*x^2 - sum_minors_3x3*x + det
+            return Polynomial(4, [ONE_RATIONAL, -tr, sum_minors_2x2, -sum_minors_3x3, det])
+
+        else:
+            # Метод Фаддеева-Леверье, так как для больших размеров труднее расписывать формулы вручную
+            return self.Faddeev_LeVerrier_algorithm()
+
+
+    # Вспомогательные методы для вычисления определителей для метода _get_characteristic_polynomial
+    @staticmethod
+    def det2x2(a, b, c, d):
+        """Определитель матрицы 2x2 [[a,b],[c,d]]"""
+        return a * d - b * c
+    @staticmethod
+    def det3x3(a, b, c, d, e, f, g, h, i):
+        """Определитель матрицы 3x3 [[a,b,c],[d,e,f],[g,h,i]] (правило Сарруса)"""
+        return (a * e * i + b * f * g + c * d * h) - (c * e * g + b * d * i + a * f * h)
+
+
+    def Faddeev_LeVerrier_algorithm(self):
+        """
+        Итеративный алгоритм для нахождения характеристического полинома без вычисления определителей
+        """
+        n = self.size
+
+        B = Matrix.identity(n)    # B0 = E
+        coeffs = [ONE_RATIONAL]   # c0 = 1
+
+        for k in range(1, n + 1):
+            # Вычисляем A*B_{k-1}
+            AB = self.naive_mul(B)
+
+            # c_k = -tr(AB) / k
+            tr = AB.trace()
+            k_rat = Rational(Integer(0, 0, [int(el) for el in str(k)]), Natural(0, [1]))
+            c_k = -tr / k_rat
+            coeffs.append(c_k)
+
+            if k < n:
+                # B_k = AB + c_k*E
+                B = AB + Matrix.identity(n).multiply_by_const(c_k)
+
+        return Polynomial(n, coeffs)
+
+
+    def Hamilton_Cayley_pow(self, power: int):
+        """
+        Нахождение A^power с использованием теоремы Гамильтона-Кэли:
+
+        Суть метода:
+        Пусть есть характеристический полином p(x) для матриц небольшого размера, найденный в методе _get_characteristic_polynomial
+        Его степень равна размеру матрицы.
+        Найдем x^power mod p(x) = r(x), тогда существует q(x) такое что x^n = q(x)*p(x) + r(x)
+        Подставим x := A (исходная матрица)
+        Получим A^power = q(A) * p(A) + r(A). А по теореме Гамильтона-Кэли p(A) = 0, тогда
+        A^power = r(A). Мы свели задачу возведения матрицы в степень к нахождению остатка от деления x^power на характеристический полином.
+        Также стоит отметить, что deg(r(x)) < n, где n - размер матрицы.
+        Это значит, что вычисление полинома с рациональными коэффициентами от матрицы не составит особой вычислительной трудности, так как размер матрицы небольшой.
+
+        Ограничение метода:
+        1) Сложность вычисления характеристического полинома возрастает с увеличением размера матрицы, поэтому рассматриваем небольшие размеры
+        2) Необходимо, чтобы поиск остатка от деления многочленов был оптимальным по сложности
+
+        Преимущества:
+        В отличие от рассмотренных ранее методов диагонализации и аналитики для матриц 2х2,
+        данный метод более универсален, так как он не опирается на собственные значения, которые могут быть иррациональными
+        """
+        if power < 0:
+            inv = self.Gauss_inv()
+            return inv.Hamilton_Cayley_pow(-power)
+
+
+        characteristic_poly = self._get_characteristic_polynomial()
+
+        # NOT OPTIMIZED APPROACH: Использование неоптимизированных алгоритмов для общего случая деления полиномов
+        # powered_x = Polynomial(power, [ONE_RATIONAL] + [ZERO_RATIONAL for _ in range(power)] )
+        # rest_poly = powered_x % characteristic_poly
+
+        rest_coeffs = self._poly_mod_pow_fast(power, characteristic_poly.C)
+
+        # Вычисление полинома от матрицы (последовательное вычисление степеней)
+        n = self.size
+        result = Matrix.zero(n)
+        powered_X = Matrix.identity(n)  # X^0
+        deg = len(rest_coeffs) - 1
+
+        # Идём от младшего коэффициента к старшему
+        for i in range(deg, -1, -1):
+            coeff = rest_coeffs[i]
+
+            if coeff != ZERO_RATIONAL:
+                result = result + powered_X.multiply_by_const(coeff)
+
+            # Подготавливаем следующую степень (если не последняя итерация)
+            if i > 0:
+                powered_X = powered_X.naive_mul(self)
+
+        return result
+
+
+    # OPTIMIZED POLYNOMIAL METHODS
+    def _poly_mod_pow_fast(self, power: int, mod_coeffs: list):
+        """
+        Оптимизированное вычисление x^power mod p(x)
+        Суть: вычисление остатка не по классическому алгоритму вида
+        a mod b = a - b * (a // b),
+        а вычисление x^n бинарным возведением в степень, но вычисления производятся по модулю p(x)
+
+        mod_coeffs: [1, c_{n-1}, ..., c_0] (от старшего к младшему)
+        Возвращает: [r_{n-1}, ..., r_0]
+        """
+        n = len(mod_coeffs) - 1  # степень полинома
+
+        # Базовый случай: полином степени 0
+        if n == 0:
+            return [ZERO_RATIONAL]  # любой полином mod константа = 0
+
+        # Представляем x как вектор длины n
+        x_vec = [ZERO_RATIONAL] * n
+        x_vec[-2] = ONE_RATIONAL  # предпоследний элемент = коэф. при x^1
+
+        # Результат: 1 = 0*x^{n-1} + ... + 0*x + 1
+        result = [ZERO_RATIONAL] * n
+        result[-1] = ONE_RATIONAL  # последний элемент = 1
+
+        base = x_vec[:]
+        p = power
+
+        while p > 0:
+            if p & 1:
+                result = self._poly_mod_mul_fast(result, base, mod_coeffs)
+            base = self._poly_mod_mul_fast(base, base, mod_coeffs)
+            p >>= 1
+
+        return result
+
+
+    @staticmethod
+    def _poly_mod_mul_fast(a: list, b: list, mod_coeffs: list):
+        """
+        Быстрое умножение многочленов по модулю
+        Вспомогательный для _poly_mod_pow_fast
+        """
+        n = len(a)  # длина векторов = степень модуля
+        degree = len(mod_coeffs) - 1  # степень модуля
+
+        # 1. Умножение (максимальная степень 2n-2)
+        prod = [ZERO_RATIONAL] * (2 * n - 1)
+
+        for i in range(n):
+            if a[i] == ZERO_RATIONAL:
+                continue
+            for j in range(n):
+                if b[j] == ZERO_RATIONAL:
+                    continue
+                prod[i + j] = prod[i + j] + a[i] * b[j]
+
+        # 2. Приведение по модулю
+        # mod_coeffs = [1, c_{degree-1}, ..., c0]
+        # x^degree ≡ -c_{degree-1}x^{degree-1} - ... - c0 mod p(x)
+        for i in range(2 * n - degree - 1): # проход по степеням, которые >= degree, их нужно заменить на остаток
+            if prod[i] != ZERO_RATIONAL:
+                coeff = prod[i]
+                # Обнуляем текущую позицию
+                prod[i] = ZERO_RATIONAL
+
+                # Вычитаем coeff * x^i * p(x)
+                for j in range(degree + 1):
+                    prod[i + j] = prod[i + j] - coeff * mod_coeffs[j]
+
+        # 3. Берем только последние n элементов (степени < n)
+        return prod[-n:]
 
 
     @staticmethod
@@ -1484,7 +1733,6 @@ class MatrixPolynomial:
 
 
 # TEMP TESTING + usage
-
 from contextlib import contextmanager
 import time
 @contextmanager
@@ -1522,15 +1770,24 @@ def create_test_matrix(n, max_num=10):
 
 if __name__ == "__main__":
 
-    # Проверка на то, как часто генерируются матрицы с рациональными собственными числами (не иррациональными)
-    # и что все-таки быстрее: аналитика или диагонализация
-    # RESULT: аналитика быстрее в общем случае, но диагонализация хороша тогда, когда есть ноль в матрице в левом нижнем углу (чисто экспериментально найдено + подтверждено графиками и математически)
-    # этому посвящен отдельный замер времени
+    # for size in [5, 6, 7]:
+    #     A = create_test_matrix(size, 5)
+    #
+    #     with timer("q"):
+    #         (A.quick_powering(50))
+    #     with timer("H-C"):
+    #         (A.Hamilton_Cayley_pow(50))
+    #     print()
 
-    A = create_test_matrix(2)
-    print(A)
+    # A = create_test_matrix(15, 5)
+    # print(A)
 
-    with timer("Diag"):
-        A.diag_and_pow_2x2(100)
-    with timer("analytical"):
-        A.analytical_2x2_pow(100)
+    # with timer("D"):
+    #     A.diag_and_pow_2x2(200)
+    # with timer("A"):
+    #     A.analytical_2x2_pow(200)
+    # with timer("Q"):
+    #     A.quick_powering(30)
+    # with timer("H-C"):
+    #     A.Hamilton_Cayley_pow(30)
+    ...

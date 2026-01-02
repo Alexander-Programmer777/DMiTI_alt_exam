@@ -6,7 +6,7 @@ import pytest
 import numpy as np
 from random import randint
 
-
+from Matrixes.main import ZERO_RATIONAL
 from N.Natural import Natural
 from Q.Rational import Rational
 from Z.Integer import Integer
@@ -694,6 +694,19 @@ class TestMatrixPower:
         expected_np = np.linalg.matrix_power(matrix_np, power)
 
         assert compare_with_numpy(result, expected_np, "Large matrix power")
+
+    # Дополнительные тесты для подхода с характеристическим полиномом
+    # new approach
+    def test_Hamilton_Cayley(self):
+        """Тест нового подхода к возведению матриц в степень через использование теоремы Гамильтона-Кэли"""
+        powers = [1, 2, 3, 5, 10, 20]
+        sizes = [2, 3, 4, 5, 6]
+
+        for power in powers:
+            for size in sizes:
+                A = create_random_matrix(size, 10)
+                # Сравнение с уже протестированным quick_powering
+                assert A.Hamilton_Cayley_pow(power) == A.quick_powering(power)
 
 
 # =================== ТЕСТЫ СПЕЦИАЛЬНЫХ МАТРИЦ ===================
@@ -1642,4 +1655,4 @@ class TestFractionalValues:
 if __name__ == "__main__":
 
     # Запуск всех тестов
-    result = pytest.main([__file__, "-v", "--tb=short"])
+    result = pytest.main([__file__, "-v"])

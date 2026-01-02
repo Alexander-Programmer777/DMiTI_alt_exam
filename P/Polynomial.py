@@ -8,7 +8,7 @@ from TRANS.TRANS_N_Z import TRANS_N_Z
 class Polynomial:
     def __init__(self, m, C):
         self.m = m  # int степень многочлена
-        self.C = C  # [] массив коэффициентов из Rational
+        self.C = C  # [] массив коэффициентов из Rational, от старшей степени к младшей
 
     def __add__(self, other):
         """
