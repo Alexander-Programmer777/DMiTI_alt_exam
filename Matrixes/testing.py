@@ -6,7 +6,6 @@ import pytest
 import numpy as np
 from random import randint
 
-from Matrixes.main import ZERO_RATIONAL
 from N.Natural import Natural
 from Q.Rational import Rational
 from Z.Integer import Integer

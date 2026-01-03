@@ -349,7 +349,7 @@ class Matrix:
         # Также данное пороговое значение протестированно для матриц бОльших размеров: для размеров от 11 до 15 выигрыш метода Гамильтона-Кэли сохраняется при данном пороговом значении,
         # но при больших размерах и степенях алгоритм начинает проигрывать в быстродействии
 
-        if n <= 15 and power >= 2.5 * n:
+        if n <= 15 and abs(power) >= 2.5 * n:     # abs - так как степень может быть отрицательной = положительная степнь для обратной матрицы
             return self.Hamilton_Cayley_pow(power)
 
         return self._quick_powering(power)
@@ -1008,11 +1008,11 @@ class Matrix:
             coeff = rest_coeffs[i]
 
             if coeff != ZERO_RATIONAL:
-                result = result + powered_X.multiply_by_const(coeff)
+                result = result + powered_X * coeff
 
             # Подготавливаем следующую степень (если не последняя итерация)
             if i > 0:
-                powered_X = powered_X.naive_mul(self)
+                powered_X = powered_X @ self
 
         return result
 
@@ -1118,7 +1118,6 @@ class Matrix:
         Строковое представление матрицы
         для удобного восприятия при выводе в консоль
         """
-
         res = ""
         for i in range(self.size):
             res += " ".join([str(elem) for elem in self.arr[i]])
